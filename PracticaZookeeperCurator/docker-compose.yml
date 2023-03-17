@@ -1,0 +1,82 @@
+version: "3.1"
+services:
+  web:
+    # replace username/repo:tag with your name and image details
+    image: jjtirado/practica2:ej2
+    deploy:
+      replicas: 5
+      restart_policy:
+        condition: on-failure
+    environment:
+      - REDIS_HOST=redis
+    ports:
+      - "4000:4567"
+    networks:
+      - webnet
+  visualizer:
+    image: dockersamples/visualizer:stable
+    ports:
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - webnet
+  redis:
+    image: redis
+    ports:
+      - "6378:6378"   
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - webnet
+  zookeeper:
+    image: zookeeper
+    hostname: zookeeper
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_PORT: 2181
+      ZOO_SERVERS: server.1=zookeeper:2888:3888
+    ports:
+        - "2181:2181"
+  practicazookeeper1:
+    image: jjtirado/practicazookeper:def
+    deploy:
+      restart_policy:
+        condition: on-failure
+    environment:
+      - NODO=node1
+      - ZOOKEEPER_HOST:"zookeeper:2181"
+    depends_on:
+      - zookeeper
+    networks:
+      - webnet
+  practicazookeeper2:
+    image: jjtirado/practicazookeper:def
+    deploy:
+      restart_policy:
+        condition: on-failure
+    environment:
+      - NODO=node2
+      - ZOOKEEPER_HOST:"zookeeper:2181"
+    depends_on:
+      - zookeeper
+    networks:
+      - webnet
+  practicazookeeper3:
+    image: jjtirado/practicazookeper:def
+    deploy:
+      restart_policy:
+        condition: on-failure
+    environment:
+      - NODO=node3
+      - ZOOKEEPER_HOST:"zookeeper:2181"
+    depends_on:
+      - zookeeper
+    networks:
+      - webnet
+networks:
+  webnet:
